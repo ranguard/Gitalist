@@ -1,0 +1,35 @@
+<div id='merge-info'>
+
+<h2>Merge status for <tt>[% branch %]</tt></h2>
+
+[% IF branchpoint %]
+  <div style='border-bottom: solid 1px black;'>
+  <div>[% INCLUDE '_chroma_hash.tt2' sha1 = branchpoint.sha1 %]</div>
+  This branch was based on
+  <a href="[% c.uri_for('commit', {h=branchpoint.sha1}) %]">[% branchpoint.sha1 %]</a>
+  <pre>[% branchpoint.comment | html %]</pre>
+  </div>
+[% END %]
+
+[% IF merged %]
+  <p>This has been merged to <tt>[% master %]</tt>.</p>
+
+  [% IF merge_info.size > 0 %]
+    <h4>These were merged</h4>
+    [% INCLUDE '_shortlog.tt2' log_lines = merge_info %]
+  [% ELSE %]
+    <h4>Couldn't find a merge commit for this branch.</h4>
+  [% END %]
+[% ELSE %]
+  <p>The branch <tt>[% branch %]</tt> has <em>not</em> been merged to <tt>[% master %]</tt>.</p>
+
+  <div class='merge-details'>
+  [% IF merge_info.0.FAILURE || merge_info.size == 0 %]
+    <h4>This branch will conflict upon merging to master</h4>
+  [% ELSE %]
+    <h4>To be merged</h4>
+    [% INCLUDE '_shortlog.tt2' log_lines = merge_info %]
+  [% END %]
+  </div>
+[% END %]
+</div>

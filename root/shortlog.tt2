@@ -2,6 +2,10 @@
 
 <div>
 [% project %]
+[% IF c.req.param('h').match('refs/heads') %]
+/ [% c.req.param('h') %]
+/ <a href="[% c.uri_for('merge_info', h=c.req.param('h')) %]">merge info</a>
+[% END %]
 </div>
 
 [%

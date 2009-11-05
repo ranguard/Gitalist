@@ -129,7 +129,7 @@ Call out to the C<git> binary and return a string consisting of the output.
 sub run_cmd {
   my ($self, @args) = @_;
 
-  print STDERR 'RUNNING: ', $self->git, qq[ @args], $/;
+  print STDERR $self->git, qq[ @args], $/;
 
   open my $fh, '-|', $self->git, @args
     or die "failed to run git command";
@@ -155,7 +155,7 @@ sub project_dir {
        : $self->dir_from_project_name($project);
 
   $dir .= '/.git'
-  	if -f dir($dir)->file('.git/HEAD');
+    if -f dir($dir)->file('.git/HEAD');
 
   return $dir;
 }
@@ -192,10 +192,10 @@ sub command {
 Returns a hash corresponding to a given project's properties. The keys will
 be:
 
-	name
-	description (empty if .git/description is empty/unnamed)
-	owner
-	last_change
+  name
+  description (empty if .git/description is empty/unnamed)
+  owner
+  last_change
 
 =cut
 
@@ -265,15 +265,15 @@ sub list_projects {
         my $obj = $base->subdir($file);
         next unless -d $obj;
         next unless $self->is_git_repo($obj);
-		# XXX Leaky abstraction alert!
-		my $is_bare = !-d $obj->subdir('.git');
+    # XXX Leaky abstraction alert!
+    my $is_bare = !-d $obj->subdir('.git');
 
-		my $name = (File::Spec->splitdir($obj))[-1];
+    my $name = (File::Spec->splitdir($obj))[-1];
         push @ret, {
             name => ($name . ( $is_bare ? '' : '/.git' )),
             $self->get_project_properties(
-				$is_bare ? $obj : $obj->subdir('.git')
-			),
+        $is_bare ? $obj : $obj->subdir('.git')
+      ),
         };
   }
 
@@ -313,10 +313,10 @@ sub head_hash {
 For a given tree sha1 return an array describing the tree's contents. Where
 the keys for each item will be:
 
-	mode
-	type
-	object
-	file
+  mode
+  type
+  object
+  file
 
 =cut
 
@@ -335,7 +335,7 @@ sub list_tree {
 
     push @ret, {
       mode    => oct $mode,
-	  # XXX I wonder why directories always turn up as 040000 ...
+    # XXX I wonder why directories always turn up as 040000 ...
       modestr => $self->get_object_mode_string({mode=>oct $mode}),
       type    => $type,
       object  => $object,
@@ -405,7 +405,7 @@ sub hash_by_path {
   my($line) = $self->command('ls-tree', $base, '--', $path)
     or return;
 
-  #'100644 blob 0fa3f3a66fb6a137f6ec2c19351ed4d807070ffa	panic.c'
+  #'100644 blob 0fa3f3a66fb6a137f6ec2c19351ed4d807070ffa  panic.c'
   $line =~ m/^([0-9]+) (.+) ($SHA1RE)\t/;
   return defined $type && $type ne $2
     ? ()
@@ -440,8 +440,8 @@ sub raw_diff {
   my ($self, @args) = @_;
 
   return $self->command(
-	  qw(diff-tree -r -M --no-commit-id --full-index),
-	  @args
+    qw(diff-tree -r -M --no-commit-id --full-index),
+    @args
   );
 }
 
@@ -491,15 +491,15 @@ sub diff {
   );
 
   my @out = $self->raw_diff(
-	( $args{patch} ? '--patch-with-raw' : () ),
-	  $parent, $args{commit}->sha1, @etc
+  ( $args{patch} ? '--patch-with-raw' : () ),
+    $parent, $args{commit}->sha1, @etc
   );
 
   # XXX Yes, there is much wrongness having parse_diff_tree be destructive.
   my @difftree = $self->parse_diff_tree(\@out);
 
   return \@difftree
-	unless $args{patch};
+  unless $args{patch};
 
   # The blank line between the tree and the patch.
   shift @out;
@@ -553,7 +553,7 @@ sub parse_diff_tree {
   my @keys = qw(modesrc modedst sha1src sha1dst status src dst);
   my @ret;
   while(@$diff and $diff->[0] =~ /^:\d+/) {
-	my $line = shift @$diff;
+  my $line = shift @$diff;
     # see. man git-diff-tree for more info
     # mode src, mode dst, sha1 src, sha1 dst, status, src[, dst]
     my @vals = $line =~ /^:(\d+) (\d+) ($SHA1RE) ($SHA1RE) ([ACDMRTUX]\d*)\t([^\t]+)(?:\t([^\n]+))?$/;
@@ -562,8 +562,8 @@ sub parse_diff_tree {
     $line{file}   = $line{src};
     $line{sha1}   = $line{sha1dst};
     $line{is_new} = $line{sha1src} =~ /^0+$/
-		if $line{sha1src};
-	@line{qw/status sim/} = $line{status} =~ /(R)(\d+)/
+    if $line{sha1src};
+  @line{qw/status sim/} = $line{status} =~ /(R)(\d+)/
       if $line{status} =~ /^R/;
     push @ret, \%line;
   }
@@ -597,9 +597,10 @@ sub list_revs {
   my ($self, %args) = @_;
 
   $args{sha1} = $self->head_hash($args{sha1})
-    if !$args{sha1} || $args{sha1} !~ $SHA1RE;
+    if !$args{sha1}
+    || ($args{sha1} !~ $SHA1RE and index($args{sha1}, '..') == -1);
 
-	my @search_opts;
+  my @search_opts;
   if($args{search}) {
     my $sargs = $args{search};
     $sargs->{type} = 'grep'
@@ -640,8 +641,8 @@ sub rev_info {
   return unless $self->valid_rev($rev);
 
   return $self->list_revs(
-	  rev => $rev, count => 1,
-	  ( $project ? (project => $project) : () )
+    rev => $rev, count => 1,
+    ( $project ? (project => $project) : () )
   );
 }
 
@@ -735,11 +736,11 @@ For a given sha1 check which branches currently point at it.
 =cut
 
 sub refs_for {
-	my($self, $sha1) = @_;
+  my($self, $sha1) = @_;
 
-	my $refs = $self->references->{$sha1};
+  my $refs = $self->references->{$sha1};
 
-	return $refs ? @$refs : ();
+  return $refs ? @$refs : ();
 }
 
 =head2 references
@@ -750,23 +751,77 @@ C<git_get_references>.
 =cut
 
 sub references {
-	my($self) = @_;
+  my($self) = @_;
 
-	return $self->{references}
-		if $self->{references};
+  return $self->{references}
+    if $self->{references};
 
-	# 5dc01c595e6c6ec9ccda4f6f69c131c0dd945f8c refs/tags/v2.6.11
-	# c39ae07f393806ccf406ef966e9a15afc43cc36a refs/tags/v2.6.11^{}
-	my @reflist = $self->command(qw(show-ref --dereference))
-		or return;
+  # 5dc01c595e6c6ec9ccda4f6f69c131c0dd945f8c refs/tags/v2.6.11
+  # c39ae07f393806ccf406ef966e9a15afc43cc36a refs/tags/v2.6.11^{}
+  my @reflist = $self->command(qw(show-ref --dereference))
+    or return;
 
-	my %refs;
-	for(@reflist) {
-		push @{$refs{$1}}, $2
-			if m!^($SHA1RE)\srefs/(.*)$!;
-	}
+  my %refs;
+  for(@reflist) {
+    push @{$refs{$1}}, $2
+      if m!^($SHA1RE)\srefs/(.*)$!;
+  }
 
-	return $self->{references} = \%refs;
+  return $self->{references} = \%refs;
+}
+
+sub branchpoint {
+  my($self, $branch, $to) = @_;
+
+  $to ||= Gitalist->config->{master};
+  # This isn't always 100% accurate, but should do the job for the most part.
+  # git rev-list --boundary from...to | grep ^- | cut -c2- | tail -1
+  my($bp) = reverse
+    map { /^-($SHA1RE)/ ? $1 : () }
+    $self->command('rev-list', '--boundary', "$branch...$to");
+
+  return $bp ? $bp : ();
+}
+
+# XXX ...
+sub to_merge {
+  my($self, $branch) = @_;
+
+  my @ret;
+  my $tmpbr = "$branch-$$-TMP";
+  # XXX This isn't a good idea.
+  $self->command(checkout => '-b', $tmpbr);
+  eval {
+    my @out = $self->command(merge => $branch);
+
+    if(@out and "@out" !~ /^(?:CONFLICT|error)/m) {
+      @ret = $self->list_revs(
+        sha1 => Gitalist->config->{master}."..$tmpbr",
+      );
+    } else {
+      # XXX This is why a proper model is needed. Bleh.
+      @ret = { FAILURE => 1 };
+      $self->command(qw(reset --hard HEAD));
+    }
+  };
+  $self->command(checkout => Gitalist->config->{master});
+  $self->command(branch   => '-D', $tmpbr);
+
+  return @ret;
+}
+
+sub mergelog {
+  my($self, $branch) = @_;
+
+  # XXX It would be preferably to use git branch --merged I think.
+  my(@commit) = $self->command(log => qq[--grep=Merge \\(commit\\|branch\\) '.*$branch'], '--format=%H')
+    or return;
+
+  if(@commit > 1) {
+    return "Multiple merges performed, giving up.";
+  }
+
+  return $self->list_revs(sha1 => "$commit[0]^1..$commit[0]^2");
 }
 
 1;

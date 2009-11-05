@@ -20,9 +20,9 @@
    <td>[% time_since(head.last_change) %]</td>
    <td class='head[% head.sha1 == HEAD ? ' current' : '' %]'>[% head.name %]</td>
    <td class='action-list'>
-     <a href="[% c.uri_for("shortlog", {h=head.sha1}) %]">shortlog</a>
-     <a href="[% c.uri_for("log", {h=head.sha1}) %]">log</a>
-     <a href="[% c.uri_for("tree", {h=head.sha1, hb=head.name}) %]">tree</a>
+     <a href="[% c.uri_for("shortlog", {h="refs/heads/" _ head.name}) %]">shortlog</a>
+     <a href="[% c.uri_for("log", {h="refs/heads/" _ head.name}) %]">log</a>
+     <a href="[% c.uri_for("tree", {h=head.tree_sha1, hb="refs/heads/" _ head.name}) %]">tree</a>
    </td>
   </tr>
  [% END %]
