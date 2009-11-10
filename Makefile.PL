@@ -3,27 +3,30 @@
 use strict;
 use warnings;
 
+use FindBin;
+BEGIN { do "$FindBin::Bin/script/env" or die $@ }
+
 use inc::Module::Install;
+use Module::AutoInstall;
 use Module::Install::AuthorRequires;
 use Module::Install::AuthorTests;
 use Module::Install::ReadmeFromPod;
 
-# Load List::Util here so local::lib doesn't break it
-use List::Util;
-
-use FindBin;
-my $sitelib = "$FindBin::Bin/site-lib";
 use local::lib '--self-contained', "$FindBin::Bin/site-lib";
 
 name 'Gitalist';
 all_from 'lib/Gitalist.pm';
-readme_from 'lib/Gitalist.pm';
+#readme_from 'lib/Gitalist.pm';
 
 requires 'Catalyst::Runtime' => '5.80003';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::StackTrace';
 requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Action::RenderView';
+
+requires 'Template';
+requires 'Template::Provider::Encoding';
+requires 'Catalyst::View::TT';
 
 requires 'Config::General';
 

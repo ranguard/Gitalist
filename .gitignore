@@ -13,3 +13,7 @@ MANIFEST.bak
 *~
 .#*
 *#
+local-lib5/
+site-lib/
+*.sw*
+*.log
