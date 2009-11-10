@@ -16,7 +16,7 @@ use local::lib '--self-contained', "$FindBin::Bin/site-lib";
 
 name 'Gitalist';
 all_from 'lib/Gitalist.pm';
-#readme_from 'lib/Gitalist.pm';
+readme_from 'lib/Gitalist.pm';
 
 requires 'Catalyst::Runtime' => '5.80003';
 requires 'Catalyst::Plugin::ConfigLoader';
