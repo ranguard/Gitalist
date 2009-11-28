@@ -1,0 +1,24 @@
+<table class='[% action %] listing'>
+ <!--
+ <thead>
+  <tr>
+   <th>HEAD</th>
+   <th>branch</th>
+  </tr>
+ </thead>
+ <tfoot>
+  <tr>
+   <td>HEAD</td>
+   <td>branch</td>
+  </tr>
+ </tfoot>
+ -->
+ <tbody>
+ [% FOREACH head IN heads %]
+  <tr>
+   <td class='sha1' title='[% head.sha1 %]'>[% INCLUDE '_chroma_hash.tt2' sha1 = head.sha1 %]</td>
+   <td class='head[% head.sha1 == HEAD ? ' current' : '' %]'>[% head.name %]</td>
+  </tr>
+ [% END %]
+ </tbody>
+</table>

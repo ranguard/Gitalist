@@ -214,6 +214,7 @@ Returns a list of revs for the given head ($sha1).
                        Int :$count?,
                        Int :$skip?,
                        HashRef :$search?,
+                       ArrayRef :$miscargs?,
                        NonEmptySimpleStr :$file? ) {
         $sha1 = $self->head_hash($sha1)
             if !$sha1 || $sha1 !~ $SHA1RE;
@@ -236,6 +237,7 @@ Returns a list of revs for the given head ($sha1).
             (defined $count ? "--max-count=$count" : ()),
             (defined $skip ? "--skip=$skip"       : ()),
             @search_opts,
+	    @{ $miscargs || [] },
             $sha1,
             '--',
             ($file ? $file : ()),
@@ -356,9 +358,11 @@ FIXME Should this return objects?
     }
 
     method _build_owner {
-        my ($gecos, $name) = (getpwuid $self->path->stat->uid)[6,0];
-        $gecos =~ s/,+$//;
-        return length($gecos) ? $gecos : $name;
+	eval {
+	    my ($gecos, $name) = (getpwuid $self->path->stat->uid)[6,0];
+	    $gecos =~ s/,+$//;
+	    return length($gecos) ? $gecos : $name;
+        } || '???';
     }
 
     method _build_last_change {
@@ -447,26 +451,20 @@ FIXME Should this return objects?
                     map  split(/\n/, $_, 6), split /\0/, $output;
     }
 
+} # end class
+
+__END__
+
 =head1 SEE ALSO
 
 L<Gitalist::Git::Util> L<Gitalist::Git::Object>
 
-=head1 AUTHORS AND COPYRIGHT
+=head1 AUTHORS
 
-  Catalyst application:
-    (C) 2009 Venda Ltd and Dan Brook <dbrook@venda.com>
-
-  Original gitweb.cgi from which this was derived:
-    (C) 2005-2006, Kay Sievers <kay.sievers@vrfy.org>
-    (C) 2005, Christian Gierke
+See L<Gitalist> for authors.
 
 =head1 LICENSE
 
-FIXME - Is this going to be GPLv2 as per gitweb? If so this is broken..
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+See L<Gitalist> for the license.
 
 =cut
-
-} # end class

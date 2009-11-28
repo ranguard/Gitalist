@@ -99,17 +99,25 @@ A summary of what's happening in the repo.
 
 sub summary : Local {
   my ( $self, $c ) = @_;
+
   my $project = $c->stash->{Project};
-  $c->detach('error_404') unless $project;
+  $c->detach('error_404')
+    unless $project;
+
   my $commit = $self->_get_object($c);
   my @heads  = @{$project->heads};
   my $maxitems = Gitalist->config->{paging}{summary} || 10;
+
+  my @log_lines = $project->list_revs(
+    sha1 => $commit->sha1,
+    count => $maxitems,
+  );
+
   $c->stash(
     commit    => $commit,
-    log_lines => [$project->list_revs(
-        sha1 => $commit->sha1,
-        count => $maxitems,
-    )],
+    log_lines => \@log_lines,
+    just_commits => [grep $_->parents == 1, @log_lines],
+    just_merges => [grep $_->parents >  1, @log_lines],
     refs      => $project->references,
     heads     => [ @heads[0 .. ($#heads < $maxitems ? $#heads : $maxitems)] ],
     action    => 'summary',
@@ -167,7 +175,7 @@ sub blame : Local {
     filename => $filename,
 
     # XXX Hack hack hack, see View::SyntaxHighlight
-    language => ($filename =~ /\.p[lm]$/ ? 'Perl' : ''),
+    language => ($filename =~ /\.p[lm]$/i ? 'Perl' : ''),
     blob     => join("\n", map $_->{line}, @$blame),
   );
 
@@ -210,7 +218,7 @@ sub blob : Local {
     head     => $head,
     filename => $filename,
     # XXX Hack hack hack, see View::SyntaxHighlight
-    language => ($filename =~ /\.p[lm]$/ ? 'Perl' : ''),
+    language => ($filename =~ /\.p[lm]$/i ? 'Perl' : ''),
     action   => 'blob',
   );
 
@@ -646,9 +654,12 @@ sub auto : Private {
       return age_string(time - $_[0]->epoch);
     },
     short_cmt => sub {
-      my $cmt = shift;
+      my($cmt, $max) = ($_[0], $_[1] || 80);
+      my $upto = $max - 10;
+      print STDERR qq[cutting off comment at $upto-$max: $cmt\n];
       my($line) = split /\n/, $cmt;
-      $line =~ s/^(.{70,80}\b).*/$1 \x{2026}/;
+      # The char 2026 is an ellipsis
+      $line =~ s/^(.{$upto,$max}\b).*/$1 \x{2026}/;
       return $line;
     },
     abridged_description => sub {
@@ -718,16 +729,40 @@ sub age_string {
   return $age_str;
 }
 
+__PACKAGE__->meta->make_immutable;
 
-=head1 AUTHOR
+__END__
 
-Dan Brook
+=head1 NAME
+
+Gitalist::Controller::Root - Root controller for the application
+
+=head1 DESCRIPTION
+
+This controller handles all of the root level paths for the application
+
+=head1 METHODS
+
+=head2 age_string
+
+=head2 blame
+
+=head2 commitdiff_plain
+
+=head2 error_404
+
+=head2 history
+
+=head2 opml
+
+=head2 project_index
+
+=head1 AUTHORS
+
+See L<Gitalist> for authors.
 
 =head1 LICENSE
 
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+See L<Gitalist> for the license.
 
 =cut
-
-__PACKAGE__->meta->make_immutable;

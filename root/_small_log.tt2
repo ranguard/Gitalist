@@ -1,0 +1,27 @@
+<table class='shortlog listing'>
+ <!--
+ <thead>
+  <tr>
+   <th>sha1</th>
+   <th>time</th>
+  </tr>
+ </thead>
+
+ <tfoot>
+  <tr>
+   <td>sha1</td>
+   <td>message</td>
+  </tr>
+ </tfoot>
+ -->
+ <tbody>
+ [% FOREACH line IN log_lines %]
+  <tr>
+   <td class='sha1' title='[% line.sha1 %]'>[% INCLUDE '_chroma_hash.tt2' sha1 = line.sha1.substr(0, 7) %]</td>
+   <td>
+     <a href="[% c.uri_for("commit", {h=line.sha1}) %]">[% short_cmt(line.comment, 65) | html %]</a>
+   </td>
+  </tr>
+ [% END %]
+ </tbody>
+</table>

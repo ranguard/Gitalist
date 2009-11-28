@@ -1,23 +1,34 @@
 [% PROCESS 'nav/actions.tt2' object = head %]
 
-<div class='summary'>
-<!-- <div id='stats'>
-  <dt>Number of commits in the last day</dt><dd>N</dd>
-  <dt>Most frequent commiter in the last week</dt><dd>Foo</dd>
-  <dt>Hottest file in the repo</dt><dd>Bar.baz</dd>
-  <dt>Current hue</dt><dd>either HEAD or some arbitrary munging</dd>
- </div> -->
-
- <dl>
-  <dt>description</dt><dd>[% Project.description %]</dd>
-  <dt>owner</dt><dd>[% Project.owner %]</dd>
-  <dt>last change</dt><dd>[% Project.last_change %]</dd>
- </dl>
-
+<div class='summary content'>
+  <div id='small-logs'>
+   <div class='commits'>
+    <h3>commits</h3>
+    [% INCLUDE '_small_log.tt2' log_lines = just_commits %]
+   </div>
+   <div class='merges'>
+    <h3>merges</h3>
+    [% INCLUDE '_small_log.tt2' log_lines = just_merges %]
+   </div>
+  </div>
+  <div id='long-log'>
+   <h3>log</h3>
+   [% INCLUDE '_shortlog.tt2' %]
+  </div>
+  <div id='refs'>
+   <div class='heads'>
+    <h3>branches</h3>
+    [% INCLUDE '_small_heads.tt2' %]
+   </div>
+   <div class='tags'>
+    <h3>tags</h3>
+    [%
+      IF tags.length > 0;
+        INCLUDE '_small_heads.tt2' heads = tags;
+      ELSE;
+	"No tags in this repo.";
+      END;
+    %]
+   </div>
+  </div>
 </div>
-
-<h2><a href='[% c.uri_for("shortlog") %]'>shortlog</a></h2>
-[% INCLUDE '_shortlog.tt2' %]
-
-<h2><a href='[% c.uri_for("heads") %]'>branches</a></h2>
-[% INCLUDE '_heads.tt2' %]
